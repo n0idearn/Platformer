@@ -8,6 +8,11 @@ public class PlayerController : MonoBehaviour
         left, right
     }
 
+    public Rigidbody2D rb;
+    public float maxSpeed = 8f;
+    public float accelerationTime = 0.2f;
+    public float decelerationTime = 0.1f;
+
     void Start()
     {
         
@@ -22,12 +27,59 @@ public class PlayerController : MonoBehaviour
         // then passed in the to the MovementUpdate which should
         // manage the actual movement of the character.
 
+        if (Keyboard.current.leftArrowKey.isPressed)
+        {
+            playerInput += Vector2.left;
+        }
+
+        if (Keyboard.current.rightArrowKey.isPressed)
+        {
+            playerInput += Vector2.right;
+        }
+
         MovementUpdate(playerInput);
     }
 
-    private void MovementUpdate(Vector2 playerInput)
+    private void MovementUpdate(Vector2 movementInput)
     {
+        float velocityX = rb.velocity.x;
 
+        if(movementInput.x != 0f)
+        {
+            float acceleration = maxSpeed / accelerationTime;
+            velocityX += movementInput.x * acceleration * Time.deltaTime;
+
+            if (velocityX > maxSpeed)
+            {
+                velocityX = maxSpeed;
+            }
+            else if (velocityX < -maxSpeed)
+            {
+                velocityX = -maxSpeed;
+            }
+        }
+        else
+        {
+            float deceleration = maxSpeed / decelerationTime;
+            if (velocityX > 0f)
+            {
+                velocityX -= deceleration * Time.deltaTime;
+                if (velocityX < 0f)
+                {
+                    velocityX = 0f;
+                }
+            }
+            else if (velocityX < 0f)
+            {
+                velocityX += deceleration * Time.deltaTime;
+                if (velocityX > 0f)
+                {
+                    velocityX = 0f;
+                }
+            }
+        }
+
+        rb.velocity = new Vector2(velocityX, rb.velocity.y);
     }
 
     public bool IsWalking()

@@ -13,6 +13,9 @@ public class PlayerController : MonoBehaviour
     public float accelerationTime = 0.2f;
     public float decelerationTime = 0.1f;
 
+    public float walkingThreshold = 0.01f;
+    private FacingDirection facingDirection = FacingDirection.right;
+
     void Start()
     {
         
@@ -57,6 +60,15 @@ public class PlayerController : MonoBehaviour
             {
                 velocityX = -maxSpeed;
             }
+
+            if (movementInput.x < 0f)
+            {
+                facingDirection = FacingDirection.left;
+            }
+            else
+            {
+                facingDirection = FacingDirection.right;
+            }
         }
         else
         {
@@ -84,7 +96,7 @@ public class PlayerController : MonoBehaviour
 
     public bool IsWalking()
     {
-        return false;
+        return rb.velocity.x > walkingThreshold || rb.velocity.x < -walkingThreshold;
     }
     public bool IsGrounded()
     {
@@ -93,6 +105,6 @@ public class PlayerController : MonoBehaviour
 
     public FacingDirection GetFacingDirection()
     {
-        return FacingDirection.left;
+        return facingDirection;
     }
 }

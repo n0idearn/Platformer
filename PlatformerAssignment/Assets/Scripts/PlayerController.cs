@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour
 {
@@ -15,6 +16,10 @@ public class PlayerController : MonoBehaviour
 
     public float walkingThreshold = 0.01f;
     private FacingDirection facingDirection = FacingDirection.right;
+
+    private List<Collider2D> groundColliders = new List<Collider2D>();
+
+    private bool wasGrounded;
 
     void Start()
     {
@@ -41,6 +46,13 @@ public class PlayerController : MonoBehaviour
         }
 
         MovementUpdate(playerInput);
+
+        bool grounded = IsGrounded();
+        if (grounded != wasGrounded)
+        {
+            Debug.Log("IsGrounded changed to: " + grounded);
+            wasGrounded = grounded;
+        }
     }
 
     private void MovementUpdate(Vector2 movementInput)
@@ -94,13 +106,53 @@ public class PlayerController : MonoBehaviour
         rb.velocity = new Vector2(velocityX, rb.velocity.y);
     }
 
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        CheckGround(collision);
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        CheckGround(collision);
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        groundColliders.Remove(collision.collider);
+    }
+
+    private void CheckGround(Collision2D collision)
+    {
+        bool touchingGround = false;
+
+        foreach (ContactPoint2D contact in collision.contacts)
+        {
+            if (contact.normal.y > 0.5f)
+            {
+                touchingGround = true;
+            }
+        }
+
+        if (touchingGround)
+        {
+            if (!groundColliders.Contains(collision.collider))
+            {
+                groundColliders.Add(collision.collider);
+            }
+        }
+        else
+        {
+            groundColliders.Remove(collision.collider);
+        }
+    }
+
     public bool IsWalking()
     {
         return rb.velocity.x > walkingThreshold || rb.velocity.x < -walkingThreshold;
     }
     public bool IsGrounded()
     {
-        return false;
+        return groundColliders.Count > 0;
     }
 
     public FacingDirection GetFacingDirection()
